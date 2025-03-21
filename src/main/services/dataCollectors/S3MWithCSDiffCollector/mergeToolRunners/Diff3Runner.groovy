@@ -25,7 +25,7 @@ class Diff3Runner extends MergeToolRunner {
     }
 
     protected List<String> buildParameters(Path leftFile, Path baseFile, Path rightFile) {
-        List<String> parameters = ['diff3', '-E', '-L', 'MINE', '-L', 'BASE', '-L', 'YOURS', '-m']
+        List<String> parameters = ['git', 'merge-file', '-L', 'MINE', '-L', 'BASE', '-L', 'YOURS', '-p', '-q']
         parameters.addAll(leftFile.toString(), baseFile.toString(), rightFile.toString())
         return parameters
     }
