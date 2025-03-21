@@ -15,8 +15,9 @@ class S3MRunner extends MergeToolRunner {
     private TextualMergeStrategy strategy
 
     S3MRunner(TextualMergeStrategy strategy) {
-        this.mergeToolName = 'S3M'
         this.strategy = strategy
+        this.mergeToolName = 'S3M'
+
     }
 
     protected ProcessBuilder buildProcess(Path leftFile, Path baseFile, Path rightFile) {
@@ -40,4 +41,7 @@ class S3MRunner extends MergeToolRunner {
         return parameters
     }
 
+    public TextualMergeStrategy getTextualStrategy() {
+        return strategy
+    }
 }
