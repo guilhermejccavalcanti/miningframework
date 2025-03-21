@@ -4,7 +4,8 @@ enum TextualMergeStrategy {
     CSDiff('csdiff'),
     Diff3('diff3'),
     ConsecutiveLines('consecutive'),
-    CSDiffAndDiff3('autotuning')
+    CSDiffAndDiff3('autotuning'),
+    Sepmerge('sepmerge')
 
     private String commandLineOption
 

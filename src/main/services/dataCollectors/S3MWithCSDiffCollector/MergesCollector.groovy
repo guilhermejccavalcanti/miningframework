@@ -21,6 +21,7 @@ class MergesCollector implements DataCollector {
         approachToRunner = [
             'CSDiff': new CSDiffRunner(),
             'Diff3': new Diff3Runner(),
+            'Sepmerge': new SepmergeRunner(),
             'GitMergeFile': new GitMergeFileRunner()
         ]
 
@@ -30,10 +31,10 @@ class MergesCollector implements DataCollector {
         }
 
         // Textual merge strategies used to run S3M
-        strategies = [ TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3 ]
+        strategies = [ TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3, TextualMergeStrategy.Sepmerge ]
 
         // All merge approaches
-        mergeApproaches = [ 'CSDiff', 'Diff3' ]
+        mergeApproaches = [ 'CSDiff', 'Diff3', 'Sepmerge']
         for (TextualMergeStrategy strategy: strategies) {
             String key = "S3M${strategy.name()}"
             mergeApproaches.add(key)
@@ -50,6 +51,9 @@ class MergesCollector implements DataCollector {
         for (String approach: mergeApproaches) {
             if (approach != 'Actual') {
                 MergeToolRunner runner = approachToRunner[approach]
+                runner.executedProject = project
+                runner.executedMergeCommit = mergeCommit
+
                 runner.collectResults(filesQuadruplePaths)
             }
         }
