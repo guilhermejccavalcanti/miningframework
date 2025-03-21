@@ -11,14 +11,21 @@ import static com.xlson.groovycsv.CsvParser.parseCsv
  * @provides: returns true if the passed mergeCommit SHA is in the commits.csv file
  */
 class IsInCommitListFilter implements CommitFilter {
+    private static IsInCommitListFilter uniqueInstance
+    public static List<String> commitList
 
-    List<String> commitList
+    public static IsInCommitListFilter getInstance(){
+        if(uniqueInstance == null){
+            uniqueInstance = new IsInCommitListFilter()
+        } else {
+            return uniqueInstance
+        }
+    }
 
     @Override
     boolean applyFilter(Project project, MergeCommit mergeCommit) {
         boolean result = true
         File commitsFile = new File("./commits.csv")
-
         if (commitList != null || commitsFile.exists()) {
             // using this check to cache the commitList between multiple executions
             // avoiding unnecessary IO operations
