@@ -25,25 +25,27 @@ class FilesQuadruplesCollector {
 
         List<String> mutuallyModifiedFilePaths = leftFilePaths.intersect(rightFilePaths)
         return mutuallyModifiedFilePaths.stream()
-            .map(filePath -> FilesQuadruplesCollector::saveFilesQuadruple(project, mergeCommit, filePath))
-            .collect(Collectors.toList())
+                .map(filePath -> {
+                    try {
+                        return Optional.of(FilesQuadruplesCollector.saveFilesQuadruple(project, mergeCommit, filePath));
+                    } catch (Exception e) {
+                        println "Couldn't parse to remove comments. IGNORING: ${filePath} CAUSE:${e.getMessage()} "
+                        return Optional.<Path> empty();
+                    }
+                })
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
-    private static Path saveFilesQuadruple(Project project, MergeCommit mergeCommit, String filePath) {
+    private static Path saveFilesQuadruple(Project project, MergeCommit mergeCommit, String filePath) throws Exception {
         Path filesQuadruplePath = Utils.commitFilesPath(project, mergeCommit).resolve(filePath)
         filesQuadruplePath.toFile().mkdirs()
 
-        for (String fileName: [ 'left', 'base', 'right', 'merge' ]) {
+        for (String fileName : ['left', 'base', 'right', 'merge']) {
             String commitSHA = getCommitSHA(mergeCommit, fileName)
             String fileContent = getFileContent(project, commitSHA, filePath)
-
-            try {
-                fileContent = removeComments(fileContent)
-                saveFile(filesQuadruplePath, fileName, fileContent)
-            } catch (ParseProblemException e) {
-                println "Couldn't parse ${fileName} file in ${filePath}"
-                saveFile(filesQuadruplePath, fileName, fileContent)
-            }
+            fileContent = removeComments(fileContent)
+            saveFile(filesQuadruplePath, fileName, fileContent)
         }
 
         return filesQuadruplePath
@@ -72,7 +74,7 @@ class FilesQuadruplesCollector {
 
         return fileContent.toString()
     }
-	
+
     private static String removeComments(String fileContent) throws ParseProblemException {
         StaticJavaParser.getConfiguration().setAttributeComments(false)
         CompilationUnit compilationUnit = StaticJavaParser.parse(fileContent)
