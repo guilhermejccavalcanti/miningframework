@@ -7,6 +7,7 @@ import services.dataCollectors.S3MWithCSDiffCollector.mergeToolRunners.S3MRunner
 import util.ProcessRunner
 
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 abstract class MergeToolRunner {
 
@@ -14,23 +15,29 @@ abstract class MergeToolRunner {
     public Project executedProject
     public MergeCommit executedMergeCommit
 
+    protected static TIMEOUT_IN_HOURS = 1
+
     void collectResults(List<Path> filesQuadruplePaths) {
         filesQuadruplePaths.each { filesQuadruplePath ->
-            Path leftFile = getContributionFile(filesQuadruplePath, 'left')
-            Path baseFile = getContributionFile(filesQuadruplePath, 'base')
-            Path rightFile = getContributionFile(filesQuadruplePath, 'right')
-
-            createToolDirectory(filesQuadruplePath)
-
-            long startTime = System.nanoTime()
-            runTool(leftFile, baseFile, rightFile)
-            long endTime = System.nanoTime()
-
-            long executionTime = endTime - startTime
-            String mergedFile = filesQuadruplePath.getFileName().toString()
-            writeExecutionTime(this.executedProject, this.executedMergeCommit, mergedFile,
-                    this, executionTime)
+            collectResults(filesQuadruplePath)
         }
+    }
+
+    void collectResults(Path filesQuadruplePath) {
+        Path leftFile = getContributionFile(filesQuadruplePath, 'left')
+        Path baseFile = getContributionFile(filesQuadruplePath, 'base')
+        Path rightFile = getContributionFile(filesQuadruplePath, 'right')
+
+        createToolDirectory(filesQuadruplePath)
+
+        long startTime = System.nanoTime()
+        runTool(leftFile, baseFile, rightFile)
+        long endTime = System.nanoTime()
+
+        long executionTime = endTime - startTime
+        String mergedFile = filesQuadruplePath.getFileName().toString()
+        writeExecutionTime(this.executedProject, this.executedMergeCommit, mergedFile,
+                this, executionTime)
     }
 
     protected Path getContributionFile(Path filesQuadruplePath, String contributionFileName) {
@@ -48,7 +55,7 @@ abstract class MergeToolRunner {
 
         Process process = ProcessRunner.startProcess(processBuilder)
         process.getInputStream().eachLine {}
-        process.waitFor()
+        process.waitFor(TIMEOUT_IN_HOURS, TimeUnit.HOURS)
     }
 
     protected Path getOutputPath(Path filesQuadruplePath, String mergeFileName) {
@@ -63,12 +70,12 @@ abstract class MergeToolRunner {
         File timeTable = new File("./Results/time-table.csv")
         if (!timeTable.exists()) {
             timeTable.createNewFile()
-            timeTable << "name;mergecommit;mergedfile;mergetoolname;executiontime\n"
+            timeTable << "name,mergecommit,mergedfile,mergetoolname,executiontime\n"
         }
 
         String mergeToolName = getMergeToolName(mergeTool)
 
-        String line = p.name + ";" + m.SHA + ";" + mergedFile + ";" + mergeToolName + ";" + executionTime
+        String line = p.name + "," + m.SHA + "," + mergedFile + "," + mergeToolName + "," + executionTime
         timeTable << "${line.replaceAll('\\\\', '/')}\n"
     }
 
