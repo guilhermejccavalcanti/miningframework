@@ -5,7 +5,7 @@ apply plugin: 'application'
 mainClassName = System.getProperty("mainClass") ?: "app.Main"
 
 repositories {
-   mavenCentral()
+	mavenCentral()
 }
 
 sourceSets {
@@ -35,6 +35,7 @@ dependencies {
 	implementation 'org.codehaus.groovy:groovy-cli-commons:3.0.0'
 	implementation 'org.codehaus.groovy:groovy-all:3.0.0'
 	implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.22.1'
+	implementation 'com.github.javaparser:javaparser-core:3.25.5'
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 	testCompileOnly 'junit:junit:4.12'

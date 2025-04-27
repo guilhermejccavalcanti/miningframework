@@ -22,6 +22,7 @@ class MergesCollector implements DataCollector {
             'CSDiff': new CSDiffRunner(),
             'Diff3': new Diff3Runner(),
             'Sepmerge': new SepmergeRunner(),
+            'Spork': new SporkRunner(),
             'GitMergeFile': new GitMergeFileRunner()
         ]
 
@@ -34,7 +35,7 @@ class MergesCollector implements DataCollector {
         strategies = [ TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3, TextualMergeStrategy.Sepmerge ]
 
         // All merge approaches
-        mergeApproaches = [ 'CSDiff', 'Diff3', 'Sepmerge']
+        mergeApproaches = [ 'CSDiff', 'Diff3', 'Sepmerge', 'Spork']
         for (TextualMergeStrategy strategy: strategies) {
             String key = "S3M${strategy.name()}"
             mergeApproaches.add(key)

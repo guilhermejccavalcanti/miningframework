@@ -2,10 +2,13 @@ package services.dataCollectors.S3MWithCSDiffCollector
 
 import services.util.MergeConflict
 import services.util.Utils
+import util.JavaEquivalenceChecker
 import util.TextualMergeStrategy
 
 import java.nio.file.Path
 import org.apache.commons.lang3.StringUtils
+
+import java.util.concurrent.TimeUnit
 
 class MergeSummary {
 
@@ -44,10 +47,8 @@ class MergeSummary {
             for (int j = i + 1; j < MergesCollector.mergeApproaches.size(); j++) {
                 String approach2 = MergesCollector.mergeApproaches[j]
 
-                // Merge outputs are compared disregarding whitespaces
-                String output1 = StringUtils.deleteWhitespace(mergeOutputs[approach1])
-                String output2 = StringUtils.deleteWhitespace(mergeOutputs[approach2])
-                this.approachesHaveSameOutputs[approach1][approach2] = output1 == output2
+                // Merge outputs are compared
+                compareMergeOutputs(approach1, approach2, mergeOutputPaths, mergeOutputs, mergeConflicts)
 
                 Set<MergeConflict> conflicts1 = mergeConflicts[approach1]
                 Set<MergeConflict> conflicts2 = mergeConflicts[approach2]
@@ -56,15 +57,35 @@ class MergeSummary {
         }
     }
 
+    private void compareMergeOutputs(String approach1, String approach2, Map<String, Path> mergeOutputPaths,
+                                     Map<String, String> mergeOutputs, Map<String, Set<MergeConflict>> mergeConflicts) {
+        String approach1Output = mergeOutputs[approach1]
+        String approach2Output = mergeOutputs[approach2]
+        if (isComparingSporkToMergeCommit(approach1, approach2)) {
+            if(mergeConflicts["Spork"].size() == 0) { //only to compute Sporks' FN
+                try {
+                    approach1Output = normalizeToSporkFormat(mergeOutputPaths[approach1])
+                    approach2Output = normalizeToSporkFormat(mergeOutputPaths[approach2])
+                } catch (Exception e) {
+                    approach1Output = mergeOutputs[approach1]
+                    approach2Output = mergeOutputs[approach2]
+                }
+            }
+        }
+        this.approachesHaveSameOutputs[approach1][approach2] = JavaEquivalenceChecker.
+                areJavaFilesEquivalent(approach1Output, approach2Output)
+    }
+
     private Map<String, Path> getMergeOutputPaths() {
         Map<String, Path> mergeOutputPaths = [:]
         mergeOutputPaths["CSDiff"] = getCSDiffMergeOutputPath()
         mergeOutputPaths["Diff3"] = getDiff3MergeOutputPath()
         mergeOutputPaths["Sepmerge"] = getSepMergeOutputPath()
+        mergeOutputPaths["Spork"] = getSporkOutputPath()
         mergeOutputPaths["GitMergeFile"] = getGitMergeFileOutputPath()
         mergeOutputPaths["Actual"] = getActualMergeOutputPath()
 
-        for (TextualMergeStrategy strategy: MergesCollector.strategies) {
+        for (TextualMergeStrategy strategy : MergesCollector.strategies) {
             String key = "S3M${strategy.name()}"
             mergeOutputPaths[key] = getMergeStrategyOutputPath(strategy)
         }
@@ -82,6 +103,10 @@ class MergeSummary {
 
     private Path getSepMergeOutputPath() {
         return this.filesQuadruplePath.resolve("Sepmerge").resolve(MERGE_FILE_NAME)
+    }
+
+    private Path getSporkOutputPath() {
+        return this.filesQuadruplePath.resolve("Spork").resolve(MERGE_FILE_NAME)
     }
 
     private Path getGitMergeFileOutputPath() {
@@ -133,8 +158,8 @@ class MergeSummary {
 
     @Override
     String toString() {
-        List<String> values = [ this.filesQuadruplePath.getFileName() ]
-        for (String approach: MergesCollector.mergeApproaches) {
+        List<String> values = [this.filesQuadruplePath.getFileName()]
+        for (String approach : MergesCollector.mergeApproaches) {
             values.add(Integer.toString(this.numberOfConflictsPerApproach[approach]))
         }
 
@@ -161,4 +186,45 @@ class MergeSummary {
         return values.join(',')
     }
 
+    private boolean isComparingSporkToMergeCommit(String mergeToolA, String mergeToolB) {
+        return (mergeToolA == "Spork" && mergeToolB == "Actual")
+                || (mergeToolA == "Actual" && mergeToolB == "Spork");
+    }
+
+    private String normalizeToSporkFormat(Path fileToBeNormalized) throws Exception {
+        // To normalize to the spork format, it is necessary to merge the file with itself.
+        ProcessBuilder processBuilder = getSporkProcessBuilder(fileToBeNormalized)
+        StringBuilder output = new StringBuilder()
+
+        try {
+            Process process = processBuilder.start()
+            process.inputStream.withReader { reader ->
+                reader.eachLine { line ->
+                    output.append(line).append(System.lineSeparator())
+                }
+            }
+            process.waitFor(1, TimeUnit.HOURS)
+        } catch (IOException | InterruptedException e) {
+            throw e
+        }
+
+        String commandOutput = output.toString()
+        return commandOutput
+    }
+
+    private ProcessBuilder getSporkProcessBuilder(Path fileToBeNormalized) {
+        String[] command = [
+                "java",
+                "-jar",
+                "dependencies/spork.jar",
+                fileToBeNormalized.toString(),
+                fileToBeNormalized.toString(),
+                fileToBeNormalized.toString()
+        ] as String[]
+
+        // Create a ProcessBuilder
+        ProcessBuilder processBuilder = new ProcessBuilder(command)
+        processBuilder.redirectErrorStream(true) // Redirect error stream to output stream
+        return processBuilder
+    }
 }
