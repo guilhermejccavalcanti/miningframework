@@ -43,32 +43,36 @@ class Project {
     List getMergeCommits(String sinceDate, String untilDate) {
         ArrayList<String> skipped = new ArrayList<String>()
         ArrayList<MergeCommit> mergeCommits = new ArrayList<MergeCommit>()
-        
-        Process gitLog = constructAndRunGitLog(sinceDate, untilDate)
-        def expectedOutput = ~/.*-(.* .*)+/
-        gitLog.getInputStream().eachLine {
 
-            // Each line contains the hash of the commit followed by the hashes of the parents.
-            if(it ==~ expectedOutput) {
-                
-                String[] informations = it.split('-') // <commit hash>-<parents hash>
-                String SHA = getSHA(informations)
-                String[] parentsSHA = getParentsSHA(informations)
+        try {
+            Process gitLog = constructAndRunGitLog(sinceDate, untilDate)
+            def expectedOutput = ~/.*-(.* .*)+/
+            gitLog.getInputStream().eachLine {
 
-                try {
-                    String ancestorSHA = getCommonAncestor(SHA, parentsSHA)
-                    MergeCommit mergeCommit = new MergeCommit(SHA, parentsSHA, ancestorSHA)
-                    mergeCommits.add(mergeCommit)
-                } catch (UnexpectedOutputException e) {
-                    println "Skipping merge commit ${SHA}"
-                    println e.message
-                    skipped.add(SHA)
+                // Each line contains the hash of the commit followed by the hashes of the parents.
+                if (it ==~ expectedOutput) {
+
+                    String[] informations = it.split('-') // <commit hash>-<parents hash>
+                    String SHA = getSHA(informations)
+                    String[] parentsSHA = getParentsSHA(informations)
+
+                    try {
+                        String ancestorSHA = getCommonAncestor(SHA, parentsSHA)
+                        MergeCommit mergeCommit = new MergeCommit(SHA, parentsSHA, ancestorSHA)
+                        mergeCommits.add(mergeCommit)
+                    } catch (UnexpectedOutputException e) {
+                        println "Skipping merge commit ${SHA}"
+                        println e.message
+                        skipped.add(SHA)
+                    }
+                } else {
+                    throw new UnexpectedOutputException('Git log returned an unexpected output. Could not retrieve merge commits.', '<commit hash>-<parents hash>', it)
                 }
-            } else {
-                throw new UnexpectedOutputException('Git log returned an unexpected output. Could not retrieve merge commits.', '<commit hash>-<parents hash>', it)
             }
+        } catch (IOException ioe){
+            //Do nothing, the project will be ignored
+            println ioe.getMessage()
         }
-        
         if(mergeCommits.isEmpty())
             println "No merge commits."
         return [mergeCommits, skipped]
@@ -102,7 +106,7 @@ class Project {
         return ProcessRunner.startProcess(gitMergeBaseBuilder)
     }
 
-    private Process constructAndRunGitLog(String sinceDate, String untilDate) {
+    private Process constructAndRunGitLog(String sinceDate, String untilDate) throws IOException {
         ProcessBuilder gitLogBuilder = ProcessRunner.buildProcess(path, 'git', '--no-pager', 'log', '--merges', '--pretty=%H-%p')
         if(!sinceDate.equals(''))
             ProcessRunner.addCommand(gitLogBuilder, "--since=\"${sinceDate}\"")
