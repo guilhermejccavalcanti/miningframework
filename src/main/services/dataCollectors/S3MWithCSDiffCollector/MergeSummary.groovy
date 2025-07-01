@@ -82,6 +82,7 @@ class MergeSummary {
         mergeOutputPaths["Diff3"] = getDiff3MergeOutputPath()
         mergeOutputPaths["Sepmerge"] = getSepMergeOutputPath()
         mergeOutputPaths["Spork"] = getSporkOutputPath()
+        mergeOutputPaths["LastMerge"] = getLastMergeOutputPath()
         mergeOutputPaths["GitMergeFile"] = getGitMergeFileOutputPath()
         mergeOutputPaths["Actual"] = getActualMergeOutputPath()
 
@@ -107,6 +108,10 @@ class MergeSummary {
 
     private Path getSporkOutputPath() {
         return this.filesQuadruplePath.resolve("Spork").resolve(MERGE_FILE_NAME)
+    }
+
+    private Path getLastMergeOutputPath() {
+        return this.filesQuadruplePath.resolve("LastMerge").resolve(MERGE_FILE_NAME)
     }
 
     private Path getGitMergeFileOutputPath() {

@@ -66,10 +66,10 @@ class Project {
                         skipped.add(SHA)
                     }
                 } else {
-                    throw new UnexpectedOutputException('Git log returned an unexpected output. Could not retrieve merge commits.', '<commit hash>-<parents hash>', it)
+                    throw new UnexpectedOutputException('ERROR: Git log returned an unexpected output. Could not retrieve merge commits.', '<commit hash>-<parents hash>', it)
                 }
             }
-        } catch (IOException ioe){
+        } catch (Exception ioe){
             //Do nothing, the project will be ignored
             println ioe.getMessage()
         }
