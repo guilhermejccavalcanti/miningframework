@@ -1,0 +1,12 @@
+/home/gjcc/dev/last-merge/target/debug/deps/libanstyle-3cd5ced1e035f552.rmeta: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/macros.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/color.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/effect.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/reset.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/style.rs
+
+/home/gjcc/dev/last-merge/target/debug/deps/libanstyle-3cd5ced1e035f552.rlib: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/macros.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/color.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/effect.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/reset.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/style.rs
+
+/home/gjcc/dev/last-merge/target/debug/deps/anstyle-3cd5ced1e035f552.d: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/macros.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/color.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/effect.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/reset.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/style.rs
+
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/lib.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/macros.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/color.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/effect.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/reset.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-1.0.4/src/style.rs:

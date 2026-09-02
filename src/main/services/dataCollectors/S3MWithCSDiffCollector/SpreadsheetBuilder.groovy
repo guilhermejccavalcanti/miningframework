@@ -19,8 +19,12 @@ class SpreadsheetBuilder {
         }
 
         summaries.each { summary ->
-            String newLine = "${project.getName()},${mergeCommit.getSHA()},${summary.toString()}"
-            appendLineToSpreadsheet(spreadsheet, newLine)
+            try {
+                String newLine = "${project.getName()},${mergeCommit.getSHA()},${summary.toString()}"
+                appendLineToSpreadsheet(spreadsheet, newLine)
+            } catch (Exception e){
+                //ignore entry, means a failed merge tool run
+            }
         }
     }
 
@@ -46,6 +50,10 @@ class SpreadsheetBuilder {
                 String approach2 = mergeApproaches[j]
                 headers.add("${approach1} conflicts = ${approach2} conflicts")
             }
+        }
+
+        for (String revision : ["base", "left", "right"]) {
+            headers.add("${revision} input = Actual output")
         }
 
         return headers.join(',')

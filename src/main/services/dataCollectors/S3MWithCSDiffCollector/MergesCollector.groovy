@@ -19,25 +19,30 @@ class MergesCollector implements DataCollector {
     static {
         // Merge tool runner associated to each merge approach
         approachToRunner = [
-            'CSDiff': new CSDiffRunner(),
-            'Diff3': new Diff3Runner(),
-            'Sepmerge': new SepmergeRunner(),
-            'Spork': new SporkRunner(),
-            'LastMerge': new LastMergeRunner(),
-            'GitMergeFile': new GitMergeFileRunner()
+                'CSDiff'      : new CSDiffRunner(),
+                'Diff3'       : new Diff3Runner(),
+                'Sepmerge'    : new SepmergeRunner(),
+                //'Autosepmerge': new AutotuningSepmergeRunner(),
+                //'Spork': new SporkRunner(),
+                'LastMerge'   : new LastMergeRunner(),
+                'JMergeGen'   : new JMergeGenRunner(),
+                'GitMergeFile': new GitMergeFileRunner()
         ]
 
-        for (TextualMergeStrategy strategy: TextualMergeStrategy.values()) {
+        for (TextualMergeStrategy strategy : TextualMergeStrategy.values()) {
             String key = "S3M${strategy.name()}"
             approachToRunner[key] = new S3MRunner(strategy)
         }
 
         // Textual merge strategies used to run S3M
-        strategies = [ TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3, TextualMergeStrategy.Sepmerge ]
+        strategies = [TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3, TextualMergeStrategy.Sepmerge]
+//        strategies = [ TextualMergeStrategy.CSDiff, TextualMergeStrategy.Diff3, TextualMergeStrategy.Sepmerge,
+//                       TextualMergeStrategy.AutoSepmerge]
 
         // All merge approaches
-        mergeApproaches = [ 'CSDiff', 'Diff3', 'Sepmerge', 'Spork', 'LastMerge']
-        for (TextualMergeStrategy strategy: strategies) {
+        mergeApproaches = ['CSDiff', 'Diff3', 'Sepmerge', 'LastMerge', 'JMergeGen']
+        //mergeApproaches = [ 'CSDiff', 'Diff3', 'Sepmerge', 'Autosepmerge', 'LastMerge']
+        for (TextualMergeStrategy strategy : strategies) {
             String key = "S3M${strategy.name()}"
             mergeApproaches.add(key)
         }
@@ -49,7 +54,7 @@ class MergesCollector implements DataCollector {
         List<Path> filesQuadruplePaths = FilesQuadruplesCollector.collectFilesQuadruples(project, mergeCommit)
         println 'Collected files quadruples'
 
-        for (String approach: mergeApproaches) {
+        for (String approach : mergeApproaches) {
             if (approach != 'Actual') {
                 MergeToolRunner runner = approachToRunner[approach]
                 runner.executedProject = project

@@ -1,13 +1,10 @@
 package services.dataCollectors.S3MWithCSDiffCollector
 
 import services.util.MergeConflict
-import services.util.Utils
 import util.JavaEquivalenceChecker
 import util.TextualMergeStrategy
 
 import java.nio.file.Path
-import org.apache.commons.lang3.StringUtils
-
 import java.util.concurrent.TimeUnit
 
 class MergeSummary {
@@ -21,40 +18,70 @@ class MergeSummary {
     Map<String, Map<String, Boolean>> approachesHaveSameOutputs
     Map<String, Map<String, Boolean>> approachesHaveSameConflicts
 
+    // Compares base.java, left.java and right.java (revisions) against the "Actual" merge output
+    Map<String, Boolean> revisionsHaveSameOutputAsActual
+
     MergeSummary(Path filesQuadruplePath) {
         this.filesQuadruplePath = filesQuadruplePath
         compareMergeApproaches()
     }
 
     private void compareMergeApproaches() {
-        Map<String, Path> mergeOutputPaths = getMergeOutputPaths()
-        Map<String, String> mergeOutputs = getMergeOutputs(mergeOutputPaths)
-        Map<String, Set<MergeConflict>> mergeConflicts = getMergeConflicts(mergeOutputPaths)
+        try {
+            Map<String, Path> mergeOutputPaths = getMergeOutputPaths()
+            Map<String, String> mergeOutputs = getMergeOutputs(mergeOutputPaths)
+            Map<String, Set<MergeConflict>> mergeConflicts = getMergeConflicts(mergeOutputPaths)
 
-        this.numberOfConflictsPerApproach = [:]
-        mergeConflicts.each { approach, conflicts ->
-            this.numberOfConflictsPerApproach[approach] = conflicts.size()
-        }
-
-        this.approachesHaveSameOutputs = [:]
-        this.approachesHaveSameConflicts = [:]
-
-        for (int i = 0; i < MergesCollector.mergeApproaches.size(); i++) {
-            String approach1 = MergesCollector.mergeApproaches[i]
-            this.approachesHaveSameOutputs[approach1] = [:]
-            this.approachesHaveSameConflicts[approach1] = [:]
-
-            for (int j = i + 1; j < MergesCollector.mergeApproaches.size(); j++) {
-                String approach2 = MergesCollector.mergeApproaches[j]
-
-                // Merge outputs are compared
-                compareMergeOutputs(approach1, approach2, mergeOutputPaths, mergeOutputs, mergeConflicts)
-
-                Set<MergeConflict> conflicts1 = mergeConflicts[approach1]
-                Set<MergeConflict> conflicts2 = mergeConflicts[approach2]
-                this.approachesHaveSameConflicts[approach1][approach2] = conflicts1 == conflicts2
+            this.numberOfConflictsPerApproach = [:]
+            mergeConflicts.each { approach, conflicts ->
+                this.numberOfConflictsPerApproach[approach] = conflicts.size()
             }
+
+            this.approachesHaveSameOutputs = [:]
+            this.approachesHaveSameConflicts = [:]
+
+            for (int i = 0; i < MergesCollector.mergeApproaches.size(); i++) {
+                String approach1 = MergesCollector.mergeApproaches[i]
+                this.approachesHaveSameOutputs[approach1] = [:]
+                this.approachesHaveSameConflicts[approach1] = [:]
+
+                for (int j = i + 1; j < MergesCollector.mergeApproaches.size(); j++) {
+                    String approach2 = MergesCollector.mergeApproaches[j]
+
+                    // Merge outputs are compared
+                    compareMergeOutputs(approach1, approach2, mergeOutputPaths, mergeOutputs, mergeConflicts)
+
+                    Set<MergeConflict> conflicts1 = mergeConflicts[approach1]
+                    Set<MergeConflict> conflicts2 = mergeConflicts[approach2]
+                    this.approachesHaveSameConflicts[approach1][approach2] = conflicts1 == conflicts2
+                }
+            }
+            compareRevisionsToActual(mergeOutputs)
+        } catch (Exception e){
+            println 'Ignoring ' + filesQuadruplePath + e.getMessage()
         }
+    }
+
+    private void compareRevisionsToActual(Map<String, String> mergeOutputs) {
+        this.revisionsHaveSameOutputAsActual = [:]
+
+        String actualOutput = mergeOutputs["Actual"]
+
+        for (String revision : ["base", "left", "right"]) {
+            Path revisionPath = getRevisionPath(revision)
+            boolean isEqual = false
+
+            if (revisionPath.toFile().exists()) {
+                String revisionOutput = getMergeOutput(revisionPath)
+                isEqual = JavaEquivalenceChecker.areJavaFilesEquivalent(revisionOutput, actualOutput)
+            }
+
+            this.revisionsHaveSameOutputAsActual[revision] = isEqual
+        }
+    }
+
+    private Path getRevisionPath(String revisionName) {
+        return this.filesQuadruplePath.resolve("${revisionName}.java")
     }
 
     private void compareMergeOutputs(String approach1, String approach2, Map<String, Path> mergeOutputPaths,
@@ -81,8 +108,10 @@ class MergeSummary {
         mergeOutputPaths["CSDiff"] = getCSDiffMergeOutputPath()
         mergeOutputPaths["Diff3"] = getDiff3MergeOutputPath()
         mergeOutputPaths["Sepmerge"] = getSepMergeOutputPath()
+        mergeOutputPaths["Autosepmerge"] = getAutotuningSepmergeOutputPath()
         mergeOutputPaths["Spork"] = getSporkOutputPath()
         mergeOutputPaths["LastMerge"] = getLastMergeOutputPath()
+        mergeOutputPaths["JMergeGen"] = getJMergeGenOutputPath()
         mergeOutputPaths["GitMergeFile"] = getGitMergeFileOutputPath()
         mergeOutputPaths["Actual"] = getActualMergeOutputPath()
 
@@ -106,12 +135,20 @@ class MergeSummary {
         return this.filesQuadruplePath.resolve("Sepmerge").resolve(MERGE_FILE_NAME)
     }
 
+    private Path getAutotuningSepmergeOutputPath() {
+        return this.filesQuadruplePath.resolve("Autosepmerge").resolve(MERGE_FILE_NAME)
+    }
+
     private Path getSporkOutputPath() {
         return this.filesQuadruplePath.resolve("Spork").resolve(MERGE_FILE_NAME)
     }
 
     private Path getLastMergeOutputPath() {
         return this.filesQuadruplePath.resolve("LastMerge").resolve(MERGE_FILE_NAME)
+    }
+
+    private Path getJMergeGenOutputPath() {
+        return this.filesQuadruplePath.resolve("JMergeGen").resolve(MERGE_FILE_NAME)
     }
 
     private Path getGitMergeFileOutputPath() {
@@ -186,6 +223,11 @@ class MergeSummary {
                 boolean sameConflict = this.approachesHaveSameConflicts[approach1][approach2]
                 values.add(Boolean.toString(sameConflict))
             }
+        }
+
+        for (String revision : ["base", "left", "right"]) {
+            boolean sameAsActual = this.revisionsHaveSameOutputAsActual[revision]
+            values.add(Boolean.toString(sameAsActual))
         }
 
         return values.join(',')

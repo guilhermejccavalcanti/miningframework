@@ -1,0 +1,11 @@
+/home/gjcc/Desktop/last-merge/target/debug/deps/libanstyle_parse-9af249922471f3c8.rmeta: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/params.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/mod.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/definitions.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/table.rs
+
+/home/gjcc/Desktop/last-merge/target/debug/deps/libanstyle_parse-9af249922471f3c8.rlib: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/params.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/mod.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/definitions.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/table.rs
+
+/home/gjcc/Desktop/last-merge/target/debug/deps/anstyle_parse-9af249922471f3c8.d: /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/lib.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/params.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/mod.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/definitions.rs /home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/table.rs
+
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/lib.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/params.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/mod.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/definitions.rs:
+/home/gjcc/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.2/src/state/table.rs:

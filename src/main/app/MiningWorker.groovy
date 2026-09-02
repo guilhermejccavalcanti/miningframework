@@ -27,6 +27,7 @@ class MiningWorker implements Runnable {
     }
 
     void run() {
+        int sumMergeCommits = 0
         while (!projectList.isEmpty()) {
             try {
                 Project project = projectList.remove()
@@ -44,8 +45,11 @@ class MiningWorker implements Runnable {
                     try {
                         if (commitFilter.applyFilter(project, mergeCommit)) {
                             println "${project.getName()} - Merge commit: ${mergeCommit.getSHA()}"
-
+                            sumMergeCommits = sumMergeCommits + 1
                             runDataCollectors(project, mergeCommit)
+
+//                            println project.getName() + "," + mergeCommit.leftSHA + "," + mergeCommit.ancestorSHA +
+//                                    "," + mergeCommit.rightSHA
                         }
                     } catch (Exception e) {
                         println "${project.getName()} - ${mergeCommit.getSHA()} - ERROR"
@@ -58,16 +62,17 @@ class MiningWorker implements Runnable {
                 if (arguments.isPushCommandActive()) // Will push.
                     pushResults(project, arguments.getResultsRemoteRepositoryURL())
 
-                if (!arguments.getKeepProjects()) {
-                    FileManager.delete(new File(project.getPath()))
-                } else {
-                    MergeHelper.returnToMaster(project)
-                }
+//                if (!arguments.getKeepProjects()) {
+//                    FileManager.delete(new File(project.getPath()))
+//                } else {
+//                    MergeHelper.returnToMaster(project)
+//                }
 
             } catch (NoSuchElementException e) {
                 println e.printStackTrace()
             }
         }
+        println(sumMergeCommits)
     }
 
     private void runDataCollectors(Project project, MergeCommit mergeCommit) {
@@ -87,11 +92,11 @@ class MiningWorker implements Runnable {
     private void cloneRepository(Project project, String target) {
         println "Cloning repository ${project.getName()} into ${target}"
 
-        File projectDirectory = new File(target)
-        if (projectDirectory.exists()) {
-            FileManager.delete(projectDirectory)
-        }
-        projectDirectory.mkdirs()
+//        File projectDirectory = new File(target)
+//        if (projectDirectory.exists()) {
+//            FileManager.delete(projectDirectory)
+//        }
+//        projectDirectory.mkdirs()
 
         String url = project.getPath()
 

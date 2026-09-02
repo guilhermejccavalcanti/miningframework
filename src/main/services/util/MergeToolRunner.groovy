@@ -36,8 +36,7 @@ abstract class MergeToolRunner {
 
         long executionTime = endTime - startTime
         String mergedFile = filesQuadruplePath.getFileName().toString()
-        writeExecutionTime(this.executedProject, this.executedMergeCommit, mergedFile,
-                this, executionTime)
+        writeExecutionTime(this.executedProject, this.executedMergeCommit, mergedFile, this, executionTime)
     }
 
     protected Path getContributionFile(Path filesQuadruplePath, String contributionFileName) {
