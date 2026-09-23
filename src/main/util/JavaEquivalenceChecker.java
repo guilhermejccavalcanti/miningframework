@@ -2,6 +2,7 @@ package util;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
@@ -41,8 +42,8 @@ public class JavaEquivalenceChecker {
 
     public static boolean areJavaFilesEquivalent(String a, String b) {
         try {
-            //First try a textual comparison
-            if (normalizeText(a).equalsIgnoreCase(normalizeText(b))) {
+            //First try a textual comparison (case-sensitive: Java is case-sensitive)
+            if (normalizeText(a).equals(normalizeText(b))) {
                 return true;
             } else {
                 //Otherwise try a syntactic comparison
@@ -71,45 +72,64 @@ public class JavaEquivalenceChecker {
     }
 
     private static void normalizeCompilationUnit(CompilationUnit cu) {
+        normalizeImports(cu);
+
         for (TypeDeclaration<?> type : cu.getTypes()) {
             normalizeTypeRecursively(type);
         }
     }
 
+    /**
+     * Import order is irrelevant to the meaning of a compilation unit, so imports are
+     * sorted into a canonical order before comparing.
+     */
+    private static void normalizeImports(CompilationUnit cu) {
+        List<ImportDeclaration> sortedImports = cu.getImports().stream()
+                .sorted(Comparator.comparing(JavaEquivalenceChecker::normalizeText))
+                .collect(Collectors.toList());
+        cu.getImports().clear();
+        cu.getImports().addAll(sortedImports);
+    }
+
     private static void normalizeTypeRecursively(TypeDeclaration<?> type) {
         normalizeModifiersAndAnnotations(type);
 
-        List<BodyDeclaration<?>> sortedMembers = type.getMembers().stream()
-                .sorted(Comparator.comparing(JavaEquivalenceChecker::normalizeText))
-                .collect(Collectors.toList());
-        type.getMembers().clear();
-        type.getMembers().addAll(sortedMembers);
-
+        // 1) Normalize every member FIRST (modifiers, annotations, nested types and
+        //    anonymous class bodies), so the textual sort key is already canonical.
         for (BodyDeclaration<?> member : type.getMembers()) {
-            normalizeModifiersAndAnnotations(member);
-
-            if (member instanceof TypeDeclaration) {
-                normalizeTypeRecursively((TypeDeclaration<?>) member);
-            }
+            normalizeMemberRecursively(member);
         }
 
-        for (ObjectCreationExpr oce : type.findAll(ObjectCreationExpr.class)) {
+        // 2) Only then sort the members.
+        sortMembers(type.getMembers());
+    }
+
+    private static void normalizeMemberRecursively(BodyDeclaration<?> member) {
+        normalizeModifiersAndAnnotations(member);
+
+        if (member instanceof TypeDeclaration) {
+            // Nested type: its own members (and any anonymous classes inside them)
+            // are handled by the recursive call.
+            normalizeTypeRecursively((TypeDeclaration<?>) member);
+            return;
+        }
+
+        for (ObjectCreationExpr oce : member.findAll(ObjectCreationExpr.class)) {
             oce.getAnonymousClassBody().ifPresent(anonymBody -> {
-                List<BodyDeclaration<?>> sortedAnonMembers = anonymBody.stream()
-                        .sorted(Comparator.comparing(JavaEquivalenceChecker::normalizeText))
-                        .collect(Collectors.toList());
-                anonymBody.clear();
-                anonymBody.addAll(sortedAnonMembers);
-
-                for (BodyDeclaration<?> member : anonymBody) {
-                    normalizeModifiersAndAnnotations(member);
-
-                    if (member instanceof TypeDeclaration) {
-                        normalizeTypeRecursively((TypeDeclaration<?>) member);
-                    }
+                for (BodyDeclaration<?> anonymMember : anonymBody) {
+                    normalizeMemberRecursively(anonymMember);
                 }
+                sortMembers(anonymBody);
             });
         }
+    }
+
+    private static void sortMembers(NodeList<BodyDeclaration<?>> members) {
+        List<BodyDeclaration<?>> sortedMembers = members.stream()
+                .sorted(Comparator.comparing(JavaEquivalenceChecker::normalizeText))
+                .collect(Collectors.toList());
+        members.clear();
+        members.addAll(sortedMembers);
     }
 
     private static void normalizeModifiersAndAnnotations(BodyDeclaration<?> body) {
